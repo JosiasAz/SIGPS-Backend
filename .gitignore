@@ -1,0 +1,80 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+
+# =========================
+# IDEs / Editores
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# Variáveis de ambiente
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Logs
+# =========================
+*.log
+logs/
+
+# =========================
+# Docker
+# =========================
+*.pid
+docker-data/
+docker-volumes/
+**/mysql-data/
+
+# =========================
+# Banco de dados
+# =========================
+*.db
+*.sqlite3
+
+# =========================
+# Machine Learning
+# =========================
+app/ml/model.pkl
+*.joblib
+*.h5
+
+# =========================
+# Alembic
+# =========================
+alembic/versions/*.pyc
+
+# =========================
+# Sistema operacional
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Build / Distribuição
+# =========================
+build/
+dist/
+*.egg-info/
+
+# =========================
+# Testes
+# =========================
+.pytest_cache/
+.coverage
+htmlcov/
