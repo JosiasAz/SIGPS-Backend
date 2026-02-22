@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   api:
     build: .
@@ -8,25 +6,32 @@ services:
       - .env
     ports:
       - "8000:8000"
-    depends_on:
-      - db
     volumes:
       - .:/app
+      - ./data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
 
   db:
     image: mysql:8.0
     container_name: sigps_db
     environment:
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: sigps
+      MYSQL_USER: app
+      MYSQL_PASSWORD: app123
+      MYSQL_ROOT_PASSWORD: root123
     ports:
       - "3306:3306"
+    command: ["mysqld", "--default-authentication-plugin=mysql_native_password"]
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot123 --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
     volumes:
-      - sigps_mysql:/var/lib/mysql
-    restart: unless-stopped
+      - mysql_data:/var/lib/mysql
 
 volumes:
-  sigps_mysql:
+  mysql_data:

@@ -1,20 +1,20 @@
 from pydantic_settings import BaseSettings
 
-class Settings(BaseSettings):
-    APP_NAME: str = "SIGPS API"
-    DB_HOST: str
-    DB_PORT: int = 3306
-    DB_USER: str
-    DB_PASSWORD: str
-    DB_NAME: str
-    JWT_SECRET: str
-    JWT_EXPIRES_MINUTES: int = 120
 
-    @property
-    def DATABASE_URL(self) -> str:
-        return f"mysql+pymysql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+class Settings(BaseSettings):
+    APP_ENV: str = "dev"
+    DATABASE_URL: str
+
+    JWT_SECRET: str
+    JWT_ALG: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 1 dia
+
+    ML_MODEL_DIR: str = "./data/models"
+    ML_MODEL_NAME: str = "model.pkl"
 
     class Config:
         env_file = ".env"
+        extra = "ignore"
+
 
 settings = Settings()
