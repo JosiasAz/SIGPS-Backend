@@ -8,12 +8,12 @@ class Base(DeclarativeBase):
     pass
 
 
-engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+motor_db = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
+SessaoLocal = sessionmaker(autocommit=False, autoflush=False, bind=motor_db)
 
 
-def get_db():
-    db = SessionLocal()
+def obter_sessao_db():
+    db = SessaoLocal()
     try:
         yield db
     finally:

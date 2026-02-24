@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings
 
 
-class Settings(BaseSettings):
+class Configuracoes(BaseSettings):
     APP_ENV: str = "dev"
     DATABASE_URL: str
 
@@ -10,11 +10,11 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 1 dia
 
     ML_MODEL_DIR: str = "./data/models"
-    ML_MODEL_NAME: str = "model.pkl"
+    ML_MODEL_NAME: str = "modelo.pkl"
 
     class Config:
         env_file = ".env"
         extra = "ignore"
 
 
-settings = Settings()
+settings = Configuracoes()

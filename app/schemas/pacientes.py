@@ -1,26 +1,35 @@
 from pydantic import BaseModel, EmailStr
 
 
-class PatientCreate(BaseModel):
+class PacienteCriar(BaseModel):
     nome: str
     email: EmailStr | None = None
     telefone: str | None = None
     observacoes: str | None = None
+    idade: int = 0
+    renda: float = 0.0
+    gastos: float = 0.0
 
 
-class PatientUpdate(BaseModel):
+class PacienteAtualizar(BaseModel):
     nome: str | None = None
     email: EmailStr | None = None
     telefone: str | None = None
     observacoes: str | None = None
+    idade: int | None = None
+    renda: float | None = None
+    gastos: float | None = None
 
 
-class PatientResponse(BaseModel):
+class PacienteResposta(BaseModel):
     id: int
     nome: str
     email: EmailStr | None
     telefone: str | None
     observacoes: str | None
+    idade: int
+    renda: float
+    gastos: float
 
     class Config:
         from_attributes = True

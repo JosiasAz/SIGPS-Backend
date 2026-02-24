@@ -3,24 +3,24 @@ import joblib
 from app.core.config import settings
 
 
-def ensure_dir() -> Path:
+def garantir_diretorio() -> Path:
     p = Path(settings.ML_MODEL_DIR)
     p.mkdir(parents=True, exist_ok=True)
     return p
 
 
-def get_model_path() -> Path:
-    return ensure_dir() / settings.ML_MODEL_NAME
+def obter_caminho_modelo() -> Path:
+    return garantir_diretorio() / settings.ML_MODEL_NAME
 
 
-def save(obj) -> str:
-    path = get_model_path()
-    joblib.dump(obj, path)
-    return str(path)
+def salvar(objeto) -> str:
+    caminho = obter_caminho_modelo()
+    joblib.dump(objeto, caminho)
+    return str(caminho)
 
 
-def load():
-    path = get_model_path()
-    if not path.exists():
-        raise FileNotFoundError(str(path))
-    return joblib.load(path)
+def carregar():
+    caminho = obter_caminho_modelo()
+    if not caminho.exists():
+        raise FileNotFoundError(str(caminho))
+    return joblib.load(caminho)

@@ -2,17 +2,17 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
-class AppointmentCreate(BaseModel):
-    patient_id: int
-    specialist_id: int
+class AgendamentoCriar(BaseModel):
+    paciente_id: int
+    especialista_id: int
     inicio: datetime
     fim: datetime
 
 
-class AppointmentResponse(BaseModel):
+class AgendamentoResposta(BaseModel):
     id: int
-    patient_id: int
-    specialist_id: int
+    paciente_id: int
+    especialista_id: int
     inicio: datetime
     fim: datetime
     status: str

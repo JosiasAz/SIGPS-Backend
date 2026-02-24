@@ -5,49 +5,54 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.db import Base
 
-PERFIS = ("admin", "gestor", "recepcao", "visualizador")
+PERFIS = ("admin", "gestor", "paciente", "visualizador")
 
 
-class User(Base):
-    __tablename__ = "users"
-    __table_args__ = (UniqueConstraint("email", name="uq_users_email"),)
+class Usuario(Base):
+    __tablename__ = "usuarios"
+    __table_args__ = (UniqueConstraint("email", name="uq_usuarios_email"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     email: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    senha_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     perfil: Mapped[str] = mapped_column(Enum(*PERFIS), nullable=False, default="visualizador")
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    criado_em: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    atualizado_em: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
-class Patient(Base):
-    __tablename__ = "patients"
+class Paciente(Base):
+    __tablename__ = "pacientes"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     nome: Mapped[str] = mapped_column(String(200), nullable=False)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     telefone: Mapped[str | None] = mapped_column(String(50), nullable=True)
     observacoes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    
+    # Dados para ML
+    idade: Mapped[int] = mapped_column(Integer, default=0)
+    renda: Mapped[float] = mapped_column(Float, default=0.0)
+    gastos: Mapped[float] = mapped_column(Float, default=0.0)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    criado_em: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
-    appointments = relationship("Appointment", back_populates="patient")
-    queue_entries = relationship("QueueEntry", back_populates="patient")
+    agendamentos = relationship("Agendamento", back_populates="paciente")
+    entradas_fila = relationship("EntradaFila", back_populates="paciente")
 
 
-class Specialty(Base):
-    __tablename__ = "specialties"
-    __table_args__ = (UniqueConstraint("nome", name="uq_specialties_nome"),)
+class Especialidade(Base):
+    __tablename__ = "especialidades"
+    __table_args__ = (UniqueConstraint("nome", name="uq_especialidades_nome"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     nome: Mapped[str] = mapped_column(String(120), nullable=False)
 
-    specialists = relationship("Specialist", back_populates="specialty")
+    especialistas = relationship("Especialista", back_populates="especialidade")
 
 
-class Specialist(Base):
-    __tablename__ = "specialists"
+class Especialista(Base):
+    __tablename__ = "especialistas"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     nome: Mapped[str] = mapped_column(String(200), nullable=False)
@@ -55,19 +60,19 @@ class Specialist(Base):
     registro: Mapped[str | None] = mapped_column(String(120), nullable=True)  # CRM/CRP etc
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    especialidade_id: Mapped[int | None] = mapped_column(ForeignKey("specialties.id"), nullable=True)
-    specialty = relationship("Specialty", back_populates="specialists")
+    especialidade_id: Mapped[int | None] = mapped_column(ForeignKey("especialidades.id"), nullable=True)
+    especialidade = relationship("Especialidade", back_populates="especialistas")
 
-    appointments = relationship("Appointment", back_populates="specialist")
-    queue_entries = relationship("QueueEntry", back_populates="specialist")
+    agendamentos = relationship("Agendamento", back_populates="especialista")
+    entradas_fila = relationship("EntradaFila", back_populates="especialista")
 
 
-class Appointment(Base):
-    __tablename__ = "appointments"
+class Agendamento(Base):
+    __tablename__ = "agendamentos"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    patient_id: Mapped[int] = mapped_column(ForeignKey("patients.id"), nullable=False)
-    specialist_id: Mapped[int] = mapped_column(ForeignKey("specialists.id"), nullable=False)
+    paciente_id: Mapped[int] = mapped_column(ForeignKey("pacientes.id"), nullable=False)
+    especialista_id: Mapped[int] = mapped_column(ForeignKey("especialistas.id"), nullable=False)
 
     inicio: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     fim: Mapped[datetime] = mapped_column(DateTime, nullable=False)
@@ -78,16 +83,16 @@ class Appointment(Base):
         nullable=False,
     )
 
-    patient = relationship("Patient", back_populates="appointments")
-    specialist = relationship("Specialist", back_populates="appointments")
+    paciente = relationship("Paciente", back_populates="agendamentos")
+    especialista = relationship("Especialista", back_populates="agendamentos")
 
 
-class QueueEntry(Base):
-    __tablename__ = "queue_entries"
+class EntradaFila(Base):
+    __tablename__ = "entradas_fila"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    patient_id: Mapped[int] = mapped_column(ForeignKey("patients.id"), nullable=False)
-    specialist_id: Mapped[int | None] = mapped_column(ForeignKey("specialists.id"), nullable=True)
+    paciente_id: Mapped[int] = mapped_column(ForeignKey("pacientes.id"), nullable=False)
+    especialista_id: Mapped[int | None] = mapped_column(ForeignKey("especialistas.id"), nullable=True)
 
     motivo: Mapped[str | None] = mapped_column(Text, nullable=True)
     prioridade: Mapped[int] = mapped_column(Integer, default=0)  # 0..100 (quanto maior, mais urgente)
@@ -99,7 +104,7 @@ class QueueEntry(Base):
         nullable=False,
     )
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    criado_em: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
-    patient = relationship("Patient", back_populates="queue_entries")
-    specialist = relationship("Specialist", back_populates="queue_entries")
+    paciente = relationship("Paciente", back_populates="entradas_fila")
+    especialista = relationship("Especialista", back_populates="entradas_fila")

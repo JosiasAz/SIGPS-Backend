@@ -1,18 +1,18 @@
 from pydantic import BaseModel, EmailStr, Field
 
 
-class RegisterRequest(BaseModel):
+class CadastroUsuario(BaseModel):
     email: EmailStr
     senha: str = Field(min_length=6, max_length=72)
     perfil: str = "visualizador"
 
 
-class LoginRequest(BaseModel):
+class LoginUsuario(BaseModel):
     email: EmailStr
     senha: str = Field(min_length=1, max_length=72)
 
 
-class LoginResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    expires_at: str
+class RespostaLogin(BaseModel):
+    token_acesso: str
+    tipo_token: str = "bearer"
+    expira_em: str

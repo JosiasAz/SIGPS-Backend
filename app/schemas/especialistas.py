@@ -1,11 +1,11 @@
 from pydantic import BaseModel
 
 
-class SpecialtyCreate(BaseModel):
+class EspecialidadeCriar(BaseModel):
     nome: str
 
 
-class SpecialtyResponse(BaseModel):
+class EspecialidadeResposta(BaseModel):
     id: int
     nome: str
 
@@ -13,7 +13,7 @@ class SpecialtyResponse(BaseModel):
         from_attributes = True
 
 
-class SpecialistCreate(BaseModel):
+class EspecialistaCriar(BaseModel):
     nome: str
     formacao: str | None = None
     registro: str | None = None
@@ -21,7 +21,7 @@ class SpecialistCreate(BaseModel):
     especialidade_id: int | None = None
 
 
-class SpecialistUpdate(BaseModel):
+class EspecialistaAtualizar(BaseModel):
     nome: str | None = None
     formacao: str | None = None
     registro: str | None = None
@@ -29,7 +29,7 @@ class SpecialistUpdate(BaseModel):
     especialidade_id: int | None = None
 
 
-class SpecialistResponse(BaseModel):
+class EspecialistaResposta(BaseModel):
     id: int
     nome: str
     formacao: str | None

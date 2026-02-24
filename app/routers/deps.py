@@ -1,34 +1,35 @@
 from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.core.security import decode_token, get_bearer_token
-from app.database.db import get_db
-from app.database.models import User
-from app.core.security import ROLE_ADMIN, ROLE_GESTOR, ROLE_RECEPCAO, ROLE_VISUALIZADOR
+from app.core.security import decodificar_token, obter_token_bearer
+from app.database.db import obter_sessao_db
+from app.database.models import Usuario
+from app.core.security import PERFIL_ADMIN, PERFIL_GESTOR, PERFIL_PACIENTE, PERFIL_VISUALIZADOR
 
 
-def get_current_user(
-    db: Session = Depends(get_db),
-    token: str = Depends(get_bearer_token),
-) -> User:
-    payload = decode_token(token)
-    user_id = payload.get("userId")
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Token inválido (sem userId)")
-    user = db.get(User, int(user_id))
-    if not user:
+def obter_usuario_atual(
+    db: Session = Depends(obter_sessao_db),
+    token: str = Depends(obter_token_bearer),
+) -> Usuario:
+    payload = decodificar_token(token)
+    usuario_id = payload.get("usuarioId")
+    if not usuario_id:
+        raise HTTPException(status_code=401, detail="Token inválido (sem usuarioId)")
+    usuario = db.get(Usuario, int(usuario_id))
+    if not usuario:
         raise HTTPException(status_code=401, detail="Usuário não existe")
-    return user
+    return usuario
 
 
-def require_roles(*roles: str):
-    def _guard(user: User = Depends(get_current_user)) -> User:
-        if user.perfil not in roles:
+def exigir_perfis(*perfis: str):
+    def _guard(usuario: Usuario = Depends(obter_usuario_atual)) -> Usuario:
+        if usuario.perfil not in perfis:
             raise HTTPException(status_code=403, detail="Sem permissão")
-        return user
+        return usuario
     return _guard
 
 
-require_admin = require_roles(ROLE_ADMIN)
-require_staff = require_roles(ROLE_ADMIN, ROLE_GESTOR, ROLE_RECEPCAO)  # operação
-require_view = require_roles(ROLE_ADMIN, ROLE_GESTOR, ROLE_RECEPCAO, ROLE_VISUALIZADOR)
+exigir_admin = exigir_perfis(PERFIL_ADMIN)
+exigir_equipe = exigir_perfis(PERFIL_ADMIN, PERFIL_GESTOR)
+exigir_operacao = exigir_perfis(PERFIL_ADMIN, PERFIL_GESTOR, PERFIL_PACIENTE)
+exigir_leitura = exigir_perfis(PERFIL_ADMIN, PERFIL_GESTOR, PERFIL_PACIENTE, PERFIL_VISUALIZADOR)

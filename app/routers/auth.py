@@ -3,44 +3,44 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.core.security import create_access_token, hash_password, verify_password, ALL_ROLES
-from app.database.db import get_db
-from app.database.models import User
-from app.schemas.auth import RegisterRequest, LoginRequest, LoginResponse
+from app.core.security import criar_token_acesso, gerar_hash_senha, verificar_senha, TODOS_PERFIS
+from app.database.db import obter_sessao_db
+from app.database.models import Usuario
+from app.schemas.auth import CadastroUsuario, LoginUsuario, RespostaLogin
 
-router = APIRouter(prefix="/auth", tags=["Auth"])
+router = APIRouter(prefix="/auth", tags=["Autenticação"])
 
 
-@router.post("/register")
-def register(data: RegisterRequest, db: Session = Depends(get_db)):
-    perfil = data.perfil.strip().lower()
-    if perfil not in ALL_ROLES:
+@router.post("/registrar")
+def registrar(dados: CadastroUsuario, db: Session = Depends(obter_sessao_db)):
+    perfil = dados.perfil.strip().lower()
+    if perfil not in TODOS_PERFIS:
         raise HTTPException(status_code=422, detail=f"Perfil inválido: {perfil}")
 
-    user = User(
-        email=str(data.email).lower(),
-        password_hash=hash_password(data.senha),
+    usuario = Usuario(
+        email=str(dados.email).lower(),
+        senha_hash=gerar_hash_senha(dados.senha),
         perfil=perfil,
     )
-    db.add(user)
+    db.add(usuario)
     try:
         db.commit()
-        db.refresh(user)
+        db.refresh(usuario)
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=409, detail="Email já cadastrado")
 
-    return {"id": user.id, "email": user.email, "perfil": user.perfil}
+    return {"id": usuario.id, "email": usuario.email, "perfil": usuario.perfil}
 
 
-@router.post("/login", response_model=LoginResponse)
-def login(data: LoginRequest, db: Session = Depends(get_db)):
-    user = db.scalar(select(User).where(User.email == str(data.email).lower()))
-    if not user or not verify_password(data.senha, user.password_hash):
+@router.post("/login", response_model=RespostaLogin)
+def entrar(dados: LoginUsuario, db: Session = Depends(obter_sessao_db)):
+    usuario = db.scalar(select(Usuario).where(Usuario.email == str(dados.email).lower()))
+    if not usuario or not verificar_senha(dados.senha, usuario.senha_hash):
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
 
-    tok = create_access_token(user.id, user.perfil)
-    return LoginResponse(
-        access_token=tok["token"],
-        expires_at=tok["expires_at"].isoformat(),
+    tok = criar_token_acesso(usuario.id, usuario.perfil)
+    return RespostaLogin(
+        token_acesso=tok["token"],
+        expira_em=tok["expires_at"].isoformat(),
     )

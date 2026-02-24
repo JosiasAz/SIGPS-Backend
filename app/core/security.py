@@ -12,28 +12,28 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 bearer = HTTPBearer(auto_error=False)
 
 # Perfis do SIGPS
-ROLE_ADMIN = "admin"
-ROLE_GESTOR = "gestor"
-ROLE_RECEPCAO = "recepcao"
-ROLE_VISUALIZADOR = "visualizador"
+PERFIL_ADMIN = "admin"
+PERFIL_GESTOR = "gestor"
+PERFIL_PACIENTE = "paciente"
+PERFIL_VISUALIZADOR = "visualizador"
 
-ALL_ROLES = {ROLE_ADMIN, ROLE_GESTOR, ROLE_RECEPCAO, ROLE_VISUALIZADOR}
-
-
-def hash_password(raw: str) -> str:
-    return pwd_context.hash(raw)
+TODOS_PERFIS = {PERFIL_ADMIN, PERFIL_GESTOR, PERFIL_PACIENTE, PERFIL_VISUALIZADOR}
 
 
-def verify_password(raw: str, hashed: str) -> bool:
-    return pwd_context.verify(raw, hashed)
+def gerar_hash_senha(senha_pura: str) -> str:
+    return pwd_context.hash(senha_pura)
 
 
-def create_access_token(user_id: int, perfil: str) -> Dict[str, Any]:
+def verificar_senha(senha_pura: str, senha_hash: str) -> bool:
+    return pwd_context.verify(senha_pura, senha_hash)
+
+
+def criar_token_acesso(usuario_id: int, perfil: str) -> Dict[str, Any]:
     now = datetime.now(timezone.utc)
     exp = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     payload = {
-        "userId": user_id,
+        "usuarioId": usuario_id,
         "perfil": perfil,
         "iat": int(now.timestamp()),
         "exp": int(exp.timestamp()),
@@ -42,7 +42,7 @@ def create_access_token(user_id: int, perfil: str) -> Dict[str, Any]:
     return {"token": token, "expires_at": exp}
 
 
-def decode_token(token: str) -> Dict[str, Any]:
+def decodificar_token(token: str) -> Dict[str, Any]:
     try:
         return jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALG])
     except jwt.ExpiredSignatureError:
@@ -51,7 +51,7 @@ def decode_token(token: str) -> Dict[str, Any]:
         raise HTTPException(status_code=401, detail="Token inválido")
 
 
-def get_bearer_token(
+def obter_token_bearer(
     creds: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
 ) -> str:
     if not creds or not creds.credentials:
