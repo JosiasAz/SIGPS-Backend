@@ -1,18 +1,25 @@
 from pydantic import BaseModel, EmailStr, Field
+from typing import Optional
 
-
-class CadastroUsuario(BaseModel):
+class UserRegister(BaseModel):
     email: EmailStr
-    senha: str = Field(min_length=6, max_length=72)
-    perfil: str = "visualizador"
+    password: str = Field(min_length=6, max_length=72)
+    role: str = "paciente"
 
-
-class LoginUsuario(BaseModel):
+class UserLogin(BaseModel):
     email: EmailStr
-    senha: str = Field(min_length=1, max_length=72)
+    password: str = Field(min_length=1, max_length=72)
 
+class TokenData(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int
 
-class RespostaLogin(BaseModel):
-    token_acesso: str
-    tipo_token: str = "bearer"
-    expira_em: str
+class TokenRefreshRequest(BaseModel):
+    refresh_token: str
+
+class UserResponse(BaseModel):
+    id: int
+    email: EmailStr
+    role: str

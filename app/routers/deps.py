@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.security import decodificar_token, obter_token_bearer
 from app.database.db import obter_sessao_db
 from app.database.models import Usuario
-from app.core.security import PERFIL_ADMIN, PERFIL_GESTOR, PERFIL_PACIENTE, PERFIL_VISUALIZADOR
+from app.core.security import PERFIL_ADMIN, PERFIL_GESTOR, PERFIL_PACIENTE, PERFIL_VISUALIZADOR, PERFIL_ESPECIALISTA
 
 
 def obter_usuario_atual(
@@ -12,9 +12,9 @@ def obter_usuario_atual(
     token: str = Depends(obter_token_bearer),
 ) -> Usuario:
     payload = decodificar_token(token)
-    usuario_id = payload.get("usuarioId")
+    usuario_id = payload.get("sub")
     if not usuario_id:
-        raise HTTPException(status_code=401, detail="Token inválido (sem usuarioId)")
+        raise HTTPException(status_code=401, detail="Token inválido (sem sub)")
     usuario = db.get(Usuario, int(usuario_id))
     if not usuario:
         raise HTTPException(status_code=401, detail="Usuário não existe")
@@ -31,5 +31,5 @@ def exigir_perfis(*perfis: str):
 
 exigir_admin = exigir_perfis(PERFIL_ADMIN)
 exigir_equipe = exigir_perfis(PERFIL_ADMIN, PERFIL_GESTOR)
-exigir_operacao = exigir_perfis(PERFIL_ADMIN, PERFIL_GESTOR, PERFIL_PACIENTE)
-exigir_leitura = exigir_perfis(PERFIL_ADMIN, PERFIL_GESTOR, PERFIL_PACIENTE, PERFIL_VISUALIZADOR)
+exigir_operacao = exigir_perfis(PERFIL_ADMIN, PERFIL_GESTOR, PERFIL_PACIENTE, PERFIL_ESPECIALISTA)
+exigir_leitura = exigir_perfis(PERFIL_ADMIN, PERFIL_GESTOR, PERFIL_PACIENTE, PERFIL_VISUALIZADOR, PERFIL_ESPECIALISTA)

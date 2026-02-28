@@ -1,227 +1,150 @@
-Perfeito. Abaixo está um **README acadêmico, didático e pronto para subir no GitHub**, pensado **para iniciantes**, para **trabalho em equipe** e para **defesa de TCC**.
+# SIGPS — System Intelligent de Gestão e Priorização na Saúde
 
-Você pode **copiar e colar exatamente como está** em `README.md`.
-
----
-
-# SIGPS – Backend
-
-**Sistema Inteligente de Gerenciamento de Prioridades em Saúde (SIGPS)**
-
-Este repositório contém o **back-end do projeto SIGPS**, desenvolvido como **projeto acadêmico**, com foco em organização, clareza e aprendizado em equipe.
-
-O sistema tem como objetivo **gerenciar usuários da área da saúde e aplicar priorização inteligente de atendimentos**, utilizando **Machine Learning** de forma simples e explicável.
+O **SIGPS** é um ecossistema inteligente voltado para a gestão de clínicas, consultórios e profissionais autônomos de saúde e bem-estar. Este repositório contém o **Backend**, construído com uma arquitetura moderna e escalável utilizando **FastAPI** e **Machine Learning**.
 
 ---
 
-## 🎯 Objetivo do Projeto
+## 🚀 Como Iniciar do Zero
 
-O SIGPS busca resolver um problema comum em sistemas de saúde e bem-estar:
-**a falta de priorização inteligente e organizada no atendimento de pacientes**.
+### 1. Pré-requisitos
+*   **Python 3.10+** (Recomendado 3.12)
+*   **MySQL 8.x** (Local ou via Docker)
+*   **Docker & Docker Compose** (Opcional, mas recomendado)
 
-Este backend é responsável por:
+### 2. Configuração do Ambiente Local
+Siga estes passos para rodar o projeto sem Docker:
 
-* Gerenciar usuários e perfis (RBAC)
-* Autenticação via JWT
-* Disponibilizar API REST documentada (Swagger)
-* Integrar um **módulo de Machine Learning** para apoiar a priorização
+1.  **Clonar o Repositório:**
+    ```bash
+    git clone https://github.com/JosiasAz/SIGPS-Backend.git
+    cd sigps-backend
+    ```
 
----
+2.  **Criar e Ativar Ambiente Virtual:**
+    ```bash
+    python -m venv .venv
+    # Windows:
+    .venv\Scripts\activate
+    # Linux/Mac:
+    source .venv/bin/activate
+    ```
 
-## 🧠 Uso de Machine Learning (Abordagem Acadêmica)
+3.  **Instalar Dependências:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-O projeto utiliza **Machine Learning como apoio à decisão**, não como substituição do profissional.
+4.  **Configurar Variáveis de Ambiente:**
+    Crie um arquivo `.env` na raiz do projeto (use o `.env.example` como base):
+    ```env
+    APP_ENV=dev
+    DATABASE_URL=mysql+pymysql://user:password@localhost:3306/sigps
+    JWT_SECRET=sua_chave_secreta_aqui
+    JWT_ALG=HS256
+    ACCESS_TOKEN_EXPIRE_MINUTES=1440
+    REFRESH_TOKEN_EXPIRE_DAYS=7
+    ```
 
-### Importante:
+5.  **Iniciar o Servidor:**
+    ```bash
+    uvicorn app.main:app --reload
+    ```
+    Acesse em: `http://localhost:8000/docs`
 
-* ❌ A API **não treina modelos automaticamente**
-* ✅ O treinamento é feito separadamente
-* ✅ A API apenas **carrega o modelo treinado** e executa inferências
-
-Isso garante:
-
-* Simplicidade
-* Performance
-* Clareza para fins acadêmicos
-
----
-
-## 🏗️ Arquitetura do Backend
-
+### 3. Configuração via Docker (Recomendado)
+Se você tem Docker instalado, basta rodar:
+```bash
+docker-compose up --build
 ```
+Isso subirá a API e o banco de dados MySQL automaticamente em uma rede isolada.
+
+---
+
+## 📂 Estrutura do Projeto
+
+```text
 sigps-backend/
 ├── app/
-│   ├── main.py              # Inicialização da API
-│   ├── database.py          # Conexão com MySQL
-│   ├── core/                # Configurações e segurança
-│   ├── models/              # Modelos do banco (SQLAlchemy)
-│   ├── schemas/             # Schemas Pydantic
-│   ├── routers/             # Endpoints da API
-│   ├── services/            # Regras de negócio
-│   └── ml/                  # Módulo de Machine Learning
-├── docker-compose.yml
-├── Dockerfile
-├── requirements.txt
-├── .env.example
-└── README.md
+│   ├── core/           # Configurações globais, segurança e padrões de resposta
+│   ├── database/       # Modelos (SQLAlchemy) e conexão com banco
+│   ├── ml/             # Motor de Machine Learning (Priorização e Inferência)
+│   ├── routers/        # Controladores da API segmentados por módulos
+│   ├── schemas/        # Validação de dados e serialização (Pydantic)
+│   ├── services/       # Lógica de negócio complexa (opcional)
+│   └── main.py         # Ponto de entrada da aplicação FastAPI
+├── data/
+│   └── models/         # Diretório para armazenamento dos arquivos .pkl (IA)
+├── .env                # Variáveis de ambiente sensíveis
+├── docker-compose.yml  # Orquestração de containers
+├── Dockerfile          # Definição da imagem Docker
+└── requirements.txt    # Dependências do Python
 ```
 
 ---
 
-## 🧩 Tecnologias Utilizadas
+## 🛠️ Módulos e Regras de Negócio
 
-* **Python 3.12**
-* **FastAPI**
-* **SQLAlchemy**
-* **MySQL**
-* **Docker & Docker Compose**
-* **JWT (Autenticação)**
-* **Scikit-learn (Machine Learning)**
+### 1. Autenticação e RBAC (`/auth`)
+Utilizamos **JWT Stateless** com um sistema de **Access e Refresh Tokens**.
+*   **Perfis (RBAC):** `paciente`, `especialista`, `admin`, `gestor`, `visualizador`.
+*   **Logout:** Invalida o Refresh Token no banco de dados.
 
----
+### 2. Especialistas (`/especialistas`)
+*   Listagem pública com filtros inteligentes (especialidade, modalidade, localização).
+*   Gestão de perfil próprio e bloqueio de horários na agenda.
 
-## 🔐 Perfis de Usuário (RBAC)
+### 3. Agendamentos (`/agendamentos`)
+*   **Modo Manual:** Paciente escolhe livremente o slot.
+*   **Modo Automático (IA):** O sistema sugere o melhor slot com base nas preferências.
+*   **Regra Crítica:** Agendamentos sugeridos pela IA ficam em estado pendente até a **confirmação final do paciente**.
 
-O sistema trabalha com controle de acesso baseado em perfil:
-
-* `admin` – controle total
-* `gestor` – gerenciamento
-* `recepcao` – operações de fila/priorização
-* `paciente` – acesso limitado
-
-Esse controle é feito via **JWT + dependências do FastAPI**.
+### 4. Lista de Espera Inteligente (`/fila`)
+*   Ao entrar na fila, o módulo de **Machine Learning** é acionado.
+*   O cálculo de prioridade leva em conta: urgência, vulnerabilidade socioeconômica e perfil clínico.
+*   Permite intervenção manual de gestores para ajustes excepcionais.
 
 ---
 
-## 🚀 Como Rodar o Projeto
-
-### 1️⃣ Pré-requisitos
-
-* Docker
-* Docker Compose
-
----
-
-### 2️⃣ Clonar o repositório
-
-```bash
-git clone https://github.com/seu-usuario/sigps-backend.git
-cd sigps-backend
-```
+## 🧠 Módulo de Machine Learning
+O SIGPS utiliza modelos baseados em **Scikit-learn** carregados diretamente em memória para alta performance.
+*   **Ação:** O score é gerado instantes após a requisição.
+*   **Inputs:** Idade, Renda, Gastos (ou urgência declarada).
+*   **Output:** Score numérico que determina a ordenação dinâmica da fila.
 
 ---
 
-### 3️⃣ Criar o arquivo `.env`
-
-```bash
-cp .env.example .env
-```
-
-> Ajuste apenas se necessário (em geral, não precisa).
-
----
-
-### 4️⃣ Subir o ambiente
-
-```bash
-docker compose up --build
-```
-
----
-
-### 5️⃣ Acessar a API
-
-* Swagger (documentação):
-  👉 [http://localhost:8000/docs](http://localhost:8000/docs)
-* Healthcheck:
-  👉 [http://localhost:8000/health](http://localhost:8000/health)
-
----
-
-## 🤖 Machine Learning – Como Usar
-
-### Treinar o modelo (manual)
-
-```bash
-docker exec -it sigps_api python -m app.ml.train
-```
-
-Isso irá gerar o arquivo:
-
-```
-app/ml/model.pkl
-```
-
-⚠️ **Esse arquivo não é versionado no Git** (boa prática).
-
----
-
-### Testar inferência via API
-
-Endpoint:
-
-```
-POST /ml/predict
-```
-
-Exemplo de payload:
+## 📡 Padrões de Resposta da API
+Todas as respostas seguem o formato:
 
 ```json
 {
-  "features": [1, 0, 0]
+  "success": true,
+  "data": { ... },
+  "message": "Operação realizada"
 }
 ```
 
-Resposta esperada:
-
+Em caso de erro:
 ```json
 {
-  "score": 2,
-  "prioridade": "alta"
+  "success": false,
+  "error": {
+    "code": "ERRO_VAL_01",
+    "message": "Descrição detalhada do erro"
+  }
 }
 ```
 
 ---
 
-## 📌 Organização para a Equipe
+## 👥 Equipe e Autores
+Projeto desenvolvido com foco acadêmico e profissional em arquitetura de software e inteligência artificial aplicada à saúde.
 
-* **Routers**: apenas recebem requisições e retornam respostas
-* **Services**: contêm regras de negócio
-* **ML**: isolado, simples e explicável
-* **Database**: centralizado
-* **Configurações**: todas via `.env`
-
-Essa separação facilita:
-
-* Aprendizado
-* Manutenção
-* Divisão de tarefas
+*   **Josias Azevedo da Silva** (JosiasAz)
+*   **Equipe SIGPS**
 
 ---
 
-## 📚 Contexto Acadêmico
-
-Este projeto:
-
-* Utiliza **dados simulados** para ML
-
-* Prioriza **clareza didática e organização**
-
-
----
-
-## 👥 Equipe
-
-Projeto desenvolvido por alunos de **Análise e Desenvolvimento de Sistemas**, com foco em aprendizado prático, arquitetura limpa e boas práticas de backend.
-
-Autores: 
-- Josias Azevedo da Silva
-- Alan Nicolas
-- Matheus Akabane
-- Kaio Pantoja
----
-
-## 📄 Licença
-
-Projeto de uso **exclusivamente acadêmico**.
-
+## 📄 Licença e Uso
+Este projeto é de cunho acadêmico/profissional. Proibida reprodução para fins comerciais sem autorização.
+SIGPS não realiza diagnósticos médicos e não atua em situações de emergência.

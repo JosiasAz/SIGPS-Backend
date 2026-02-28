@@ -40,8 +40,22 @@ def treinar_IA(n_amostras: int = 300) -> Tuple[str, float]:
     return caminho.split("/")[-1], precisao
 
 
+_modelo_cache = None
+
+def carregar_modelo_se_necessario():
+    global _modelo_cache
+    if _modelo_cache is None:
+        try:
+            _modelo_cache = carregar()
+        except:
+            # Fallback if no model exists: train a quick one
+            treinar_IA(100)
+            _modelo_cache = carregar()
+    return _modelo_cache
+
+
 def prever_prioridade(idade: int, renda: float, gastos: float) -> tuple[int, float]:
-    empacotado: ModeloEmpacotado = carregar()
+    empacotado: ModeloEmpacotado = carregar_modelo_se_necessario()
     X = gerar_recursos(idade, renda, gastos)
     proba = empacotado.modelo.predict_proba(X)[0]
     pontuacao = float(proba[1])  # prob de classe 1 (alta)

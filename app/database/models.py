@@ -5,8 +5,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.db import Base
 
-PERFIS = ("admin", "gestor", "paciente", "visualizador")
-
+PERFIS = ("admin", "gestor", "paciente", "visualizador", "especialista")
 
 class Usuario(Base):
     __tablename__ = "usuarios"
@@ -20,11 +19,26 @@ class Usuario(Base):
     criado_em: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     atualizado_em: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    refresh_tokens = relationship("RefreshToken", back_populates="usuario", cascade="all, delete-orphan")
+
+
+class RefreshToken(Base):
+    __tablename__ = "refresh_tokens"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    token: Mapped[str] = mapped_column(String(512), unique=True, index=True)
+    usuario_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), nullable=False)
+    expira_em: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    revogado: Mapped[bool] = mapped_column(Integer, default=0) # MySQL fallback if Bool is int
+
+    usuario = relationship("Usuario", back_populates="refresh_tokens")
+
 
 class Paciente(Base):
     __tablename__ = "pacientes"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    usuario_id: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"), unique=True, nullable=True)
     nome: Mapped[str] = mapped_column(String(200), nullable=False)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     telefone: Mapped[str | None] = mapped_column(String(50), nullable=True)
@@ -55,10 +69,14 @@ class Especialista(Base):
     __tablename__ = "especialistas"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    usuario_id: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"), unique=True, nullable=True)
     nome: Mapped[str] = mapped_column(String(200), nullable=False)
     formacao: Mapped[str | None] = mapped_column(String(255), nullable=True)
     registro: Mapped[str | None] = mapped_column(String(120), nullable=True)  # CRM/CRP etc
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
+    localizacao: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    foto_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    modalidade: Mapped[str] = mapped_column(Enum("presencial", "online", "hibrido"), default="presencial")
 
     especialidade_id: Mapped[int | None] = mapped_column(ForeignKey("especialidades.id"), nullable=True)
     especialidade = relationship("Especialidade", back_populates="especialistas")
@@ -78,10 +96,12 @@ class Agendamento(Base):
     fim: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
     status: Mapped[str] = mapped_column(
-        Enum("agendado", "concluido", "cancelado"),
+        Enum("agendado", "concluido", "cancelado", "sugestao"),
         default="agendado",
         nullable=False,
     )
+    tipo: Mapped[str] = mapped_column(Enum("manual", "automatico"), default="manual")
+    confirmado: Mapped[bool] = mapped_column(Integer, default=1) # 1=True, 0=False
 
     paciente = relationship("Paciente", back_populates="agendamentos")
     especialista = relationship("Especialista", back_populates="agendamentos")

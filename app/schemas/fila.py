@@ -1,24 +1,21 @@
 from pydantic import BaseModel
-
+from typing import Optional
 
 class FilaCriar(BaseModel):
-    paciente_id: int
-    especialista_id: int | None = None
-    motivo: str | None = None
-    prioridade: int = 0
+    especialista_id: Optional[int] = None
+    motivo: Optional[str] = None
+    urgencia_declarada: Optional[int] = 0 # 1-10
 
-
-class FilaAtualizarStatus(BaseModel):
-    status: str  # aguardando|chamado|atendido|cancelado
-
+class FilaPrioridadeUpdate(BaseModel):
+    prioridade: int
 
 class FilaResposta(BaseModel):
     id: int
     paciente_id: int
-    especialista_id: int | None
-    motivo: str | None
+    especialista_id: Optional[int]
+    motivo: Optional[str]
     prioridade: int
-    score_ml: float | None
+    score_ml: Optional[float]
     status: str
 
     class Config:

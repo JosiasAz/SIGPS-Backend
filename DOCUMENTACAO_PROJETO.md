@@ -1,71 +1,91 @@
-# Documentação Completa do Projeto SIGPS
+# SIGPS — Documentação Técnica do Sistema
 
-## 1. Visão Geral
-O **SIGPS (Sistema Inteligente de Gerenciamento de Prioridades em Saúde)** é uma plataforma de backend projetada para o **autoatendimento inteligente**. Diferente de sistemas tradicionais, o SIGPS elimina a necessidade de triagem manual por recepcionistas, permitindo que o fluxo de atendimento seja guiado de ponta a ponta por **Inteligência Artificial (Machine Learning)**.
-
----
-
-## 2. O Problema vs. A Solução
-*   **O Problema:** Filas de espera baseadas na ordem de chegada e dependência de triagem humana, que pode ser lenta e subjetiva.
-*   **A Solução:** Um sistema **Self-Service**. O paciente realiza seu cadastro e entrada na fila. No exato momento da entrada, a IA analisa o perfil socioeconômico e clínico do paciente e define sua posição prioritária em tempo real.
+Esta documentação detalha a arquitetura, padrões e decisões de design implementadas no SIGPS Backend.
 
 ---
 
-## 3. Principais Funcionalidades
+## 1. Arquitetura do Sistema
 
-### 🔐 3.1. Gestão de Acesso e Segurança (Autenticação)
-*   **Autenticação JWT:** Login seguro para pacientes e gestores via `/auth/login`.
-*   **RBAC (Controle Baseado em Perfis):**
-    *   `admin`: Controle total e manutenção do modelo de IA via `/ia/treinar`.
-    *   `gestor`: Supervisão de especialistas e painéis.
-    *   `paciente`: Perfil de autoatendimento para realizar entrada na fila e acompanhar posição.
+O SIGPS é construído sobre o framework **FastAPI**, utilizando **SQLAlchemy (1.4/2.0 style)** como ORM para comunicação com o banco de dados **MySQL**.
 
-### 👥 3.2. Autoatendimento de Pacientes
-*   **Cadastro Socioeconômico:** O paciente fornece dados como idade, renda e gastos, essenciais para a análise de vulnerabilidade pela IA.
-*   **Especialistas e Especialidades:** Acesso à lista de médicos via `/especialistas`.
-
-### 📅 3.3. Fila Inteligente Automática
-*   **Entrada Sem Intervenção:** Ao entrar na fila via `/fila`, o sistema não aguarda uma triagem humana.
-*   **Cálculo Instantâneo de IA:** O backend chama o motor de Machine Learning no momento da criação da entrada na fila, preenchendo o score de prioridade automaticamente.
-*   **Organização Dinâmica:** A fila se reordena instantaneamente para garantir que os mais urgentes sejam chamados primeiro.
-
-### 🧠 3.4. Inteligência Artificial (IA)
-*   **Modelo:** Regressão Logística (Scikit-learn).
-*   **Automação:** Fornece a inteligência necessária para que o sistema funcione sem funcionários de recepção.
-*   **Explicação:** O score de urgência é calculado cruzando a idade do paciente com o impacto financeiro de sua renda, priorizando quem tem maior risco social.
+### Camadas:
+1.  **Core (`app/core/`)**: Contém a espinha dorsal do sistema.
+    *   `config.py`: Gestão de variáveis de ambiente usando Pydantic Settings.
+    *   `security.py`: Lógica de hashing de senhas (Bcrypt) e gestão de tokens JWT.
+    *   `responses.py`: Utilitário para garantir que toda resposta da API seja consistente.
+2.  **Database (`app/database/`)**:
+    *   `db.py`: Configuração do Engine e Session local.
+    *   `models.py`: Definição das tabelas do MySQL. Implementado com relacionamentos recursivos e cascatas de deleção.
+3.  **Schemas (`app/schemas/`)**:
+    *   Utiliza Pydantic para validação de entrada e serialização de saída (DTPs).
+4.  **Routers (`app/routers/`)**:
+    *   Implementação dos endpoints REST. Cada roteador é protegido por dependências de segurança (`deps.py`) que validam o perfil do usuário (RBAC).
+5.  **ML (`app/ml/`)**:
+    *   Módulo desacoplado para inferência de Machine Learning.
+    *   `model.py`: Carrega modelos `.pkl` e fornece funções de previsão.
 
 ---
 
-## 4. Arquitetura Técnica
-*   `app/routers/fila.py`: Integra diretamente a chamada à IA (`prever_prioridade`) durante a criação da entrada na fila.
-*   `app/database/models.py`: Modelos em Português (Paciente, Especialista, Agendamento, etc.).
-*   `app/routers/deps.py`: Permissões ajustadas para que o perfil `paciente` possa operar suas próprias solicitações de fila.
+## 2. Padrões de Segurança (RBAC & JWT)
+
+O sistema implementa **RBAC (Role-Based Access Control)** com 5 níveis:
+1.  **Paciente**: Acesso a agendamentos próprios e filtros de especialistas.
+2.  **Especialista**: Gestão da própria agenda e perfil.
+3.  **Gestor**: Monitoria de fluxo e intervenção na fila.
+4.  **Admin**: Gestão de usuários internos e parâmetros do sistema.
+5.  **Visualizador**: Acesso somente leitura para auditoria e dashboards.
+
+### Gestão de Sessão:
+*   **Access Token**: 24h de validade (configurável).
+*   **Refresh Token**: 7 dias de validade, armazenado no banco para permitir o "Force Logout" (revogação).
 
 ---
 
-## 5. Fluxo de Uso "Zero Recepção"
-1.  **Login do Paciente:** O usuário entra no sistema com seu perfil de `paciente`.
-2.  **Registro de Dados:** Se for o primeiro acesso, o paciente preenche seus dados socioeconômicos.
-3.  **Entrada na Fila:** O paciente clica para entrar na fila (com ou sem médico preferencial).
-4.  **Processamento em Backstage:** O SIGPS chama a IA, gera o score e coloca o paciente na posição correta da fila.
-5.  **Notificação/Atendimento:** O profissional disponível visualiza a fila (organizada por prioridade) e chama o próximo paciente.
+## 3. Lógica de Agendamento Automático com IA
+
+O fluxo de agendamento automático é um diferencial do SIGPS:
+1.  O paciente solicita uma sugestão (`POST /agendamentos/automatico`).
+2.  O sistema processa as preferências e sugere um profissional.
+3.  Um registro de agendamento é criado com status `sugestao` e `confirmado = False`.
+4.  O agendamento só é efetivado quando o paciente chama `POST /agendamentos/confirmar/{id}`.
 
 ---
 
-## 6. Stack Tecnológica
-*   **Linguagem:** Python 3.12
-*   **Framework:** FastAPI
-*   **Banco de Dados:** MySQL / SQLAlchemy
-*   **IA:** Scikit-Learn, NumPy
-*   **Container:** Docker & Docker Compose
-*   **Documentação Automática:** Swagger (OpenAPI) em `/docs`
+## 4. Priorização de Fila Inteligente
+
+A priorização não é apenas por ordem de chegada:
+*   **Acionamento**: Ao criar uma entrada na fila (`POST /fila/entrar`).
+*   **Motor de Score**: O motor de ML calcula um peso baseado no perfil cadastrado do paciente.
+*   **Ordenação**: O endpoint `GET /fila` retorna os pacientes ordenados de forma decrescente pelo score de prioridade.
 
 ---
 
-## 7. Próximos Passos (Roadmap)
-*   [x] Tradução completa do backend para Português (PT-BR).
-*   [ ] Notificações via WhatsApp/E-mail para pacientes chamados.
-*   [ ] Front-end em React/Next.js para visualização do Painel.
+## 5. Implementação de Resposta Padrão
+
+Para facilitar a integração com o Frontend, utilizamos o `standard_response`:
+*   **Sucesso**: Status HTTP 200-201.
+*   **Erro**: Status HTTP 400-500, com objeto `error` contendo código interno para facilitar a tradução no Front.
+
+```python
+# Exemplo de erro retornado
+{
+    "success": false,
+    "error": {
+        "code": "HTTP_401",
+        "message": "Token expirado"
+    }
+}
+```
 
 ---
-**Documento gerado para registro técnico do projeto SIGPS.**
+
+## 6. Guia para Novos Desenvolvedores (Do Zero ao Primeiro Endpoint)
+
+1.  **Modelo**: Declare a nova tabela em `app/database/models.py`.
+2.  **Schema**: Crie os modelos Pydantic em `app/schemas/`.
+3.  **Router**: Crie um novo arquivo em `app/routers/` e registre-o no `app/main.py`.
+4.  **Segurança**: Use `Depends(exigir_perfis(...))` para proteger o endpoint.
+5.  **Resposta**: Utilize sempre a função `standard_response`.
+
+---
+*Documentação atualizada em: 28 de Fevereiro de 2026*

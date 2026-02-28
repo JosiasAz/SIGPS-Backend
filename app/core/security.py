@@ -12,12 +12,13 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 bearer = HTTPBearer(auto_error=False)
 
 # Perfis do SIGPS
+PERFIL_ESPECIALISTA = "especialista"
 PERFIL_ADMIN = "admin"
 PERFIL_GESTOR = "gestor"
 PERFIL_PACIENTE = "paciente"
 PERFIL_VISUALIZADOR = "visualizador"
 
-TODOS_PERFIS = {PERFIL_ADMIN, PERFIL_GESTOR, PERFIL_PACIENTE, PERFIL_VISUALIZADOR}
+TODOS_PERFIS = {PERFIL_ADMIN, PERFIL_GESTOR, PERFIL_PACIENTE, PERFIL_VISUALIZADOR, PERFIL_ESPECIALISTA}
 
 
 def gerar_hash_senha(senha_pura: str) -> str:
@@ -28,18 +29,34 @@ def verificar_senha(senha_pura: str, senha_hash: str) -> bool:
     return pwd_context.verify(senha_pura, senha_hash)
 
 
-def criar_token_acesso(usuario_id: int, perfil: str) -> Dict[str, Any]:
+def criar_token_acesso(usuario_id: int, perfil: str, expires_delta: Optional[timedelta] = None) -> str:
     now = datetime.now(timezone.utc)
-    exp = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    if expires_delta:
+        exp = now + expires_delta
+    else:
+        exp = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     payload = {
-        "usuarioId": usuario_id,
+        "sub": str(usuario_id),
         "perfil": perfil,
+        "type": "access",
         "iat": int(now.timestamp()),
         "exp": int(exp.timestamp()),
     }
-    token = jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALG)
-    return {"token": token, "expires_at": exp}
+    return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALG)
+
+
+def criar_token_refresh(usuario_id: int) -> str:
+    now = datetime.now(timezone.utc)
+    exp = now + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+
+    payload = {
+        "sub": str(usuario_id),
+        "type": "refresh",
+        "iat": int(now.timestamp()),
+        "exp": int(exp.timestamp()),
+    }
+    return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALG)
 
 
 def decodificar_token(token: str) -> Dict[str, Any]:

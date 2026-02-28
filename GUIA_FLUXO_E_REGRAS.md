@@ -6,71 +6,69 @@ Este documento explica de forma simples e detalhada como o SIGPS funciona na pr�
 
 ## 1. Os Perfis do Sistema (Quem é quem?)
 
-Existem 4 tipos de "chaves" (perfis) que determinam o que uma pessoa pode ver ou fazer no sistema:
+Existem **5 tipos** de "chaves" (perfis) que determinam o que uma pessoa pode ver ou fazer no sistema:
 
 ### 🅰️ Admin (O Administrador)
 *   **Quem é:** O responsável técnico ou diretor da unidade.
-*   **O que faz:** Tem poder total. É o único que pode **treinar a Inteligência Artificial** com novos dados.
-*   **Como ser um:** Ao criar a conta no `/auth/registrar`, deve-se enviar o campo `"perfil": "admin"`.
+*   **O que faz:** Tem poder total. Gerencia todos os usuários e parâmetros do sistema.
 
 ### 👤 Gestor (O Gerente)
-*   **Quem é:** O coordenador clínico ou administrador do hospital.
-*   **O que faz:** Gerencia a equipe (cadastra e edita Médicos/Especialistas), organiza as especialidades e acompanha o **Dashboard** com estatísticas em tempo real.
-*   **Como ser um:** No cadastro, envie `"perfil": "gestor"`.
+*   **Quem é:** O coordenador clínico ou administrador.
+*   **O que faz:** Monitora o fluxo de pacientes, intervém na fila se necessário e acompanha o **Dashboard** analítico.
 
 ### 🏥 Paciente (O Usuário do Serviço)
 *   **Quem é:** A pessoa que busca atendimento.
-*   **O que faz:** Realiza seu próprio cadastro, insere seus dados socioeconômicos e faz o **check-in na fila**. Ele pode escolher um médico específico ou entrar na fila geral.
-*   **Como ser um:** No cadastro, envie `"perfil": "paciente"`.
+*   **O que faz:** Realiza seu próprio cadastro, escolhe especialistas e entra na **Lista de Espera**.
+
+### 🩺 Especialista (O Profissional de Saúde)
+*   **Quem é:** Médicos, psicólogos, nutricionistas, etc.
+*   **O que faz:** Gerencia seu perfil público e sua própria agenda de horários.
 
 ### 👁️ Visualizador (Acesso de Leitura)
 *   **Quem é:** Um auditor ou estagiário.
-*   **O que faz:** Apenas visualiza as listas, sem permissão para alterar nada ou entrar na fila.
+*   **O que faz:** Apenas visualiza relatórios e dashboards, sem permissão para alterações.
 
 ---
 
 ## 2. A Inteligência Artificial (Nossa ML)
 
-A grande diferença do SIGPS é que ele não atende por "ordem de chegada" simplesmente. Ele atende por **Urgência Social e Clínica**.
+A grande diferença do SIGPS é que ele não atende apenas por "ordem de chegada". Ele utiliza **Priorização Inteligente**.
 
-### As Regras da IA:
-A nossa ML (Regressão Logística) analisa três pilares principais para dar uma nota de 0 a 100 para o paciente:
-1.  **Idade:** Pessoas idosas recebem uma pontuação maior automaticamente.
-2.  **Renda vs. Gastos:** A IA calcula o "Comprometimento de Renda". Se o paciente gasta muito do que ganha com sobrevivência, a IA entende que ele está em situação de vulnerabilidade e aumenta sua prioridade.
-3.  **Score Automático:** Você não precisa pedir para a IA calcular. No momento em que o paciente entra na fila, o sistema faz o cálculo "por baixo dos panos" e já o coloca na posição correta.
-
----
-
-## 3. Fluxo do Sistema (O Caminho do Usuário)
-
-### Caso de Uso 1: O Paciente Crítico (Autoatendimento)
-*   **Ação:** João (Paciente, 70 anos, baixa renda) cria sua conta e clica em "Entrar na Fila".
-*   **O que acontece:** O sistema detecta que João é idoso e tem baixa renda. A IA gera um score de 95.
-*   **Resultado:** João passa na frente de outros 10 pacientes que chegaram antes dele, mas que têm 20 anos e alta renda.
-
-### Caso de Uso 2: O Gestor Organizando a Casa
-*   **Ação:** O Gestor percebe que a fila de "Cardiologia" está muito grande.
-*   **O que acontece:** Ele acessa o Dashboard, vê os números e decide cadastrar um novo Médico Especialista para ajudar na demanda.
-*   **Resultado:** O sistema passa a oferecer esse novo médico como opção de transbordo para os pacientes.
-
-### Caso de Uso 3: O Admin Atualizando o Cérebro
-*   **Ação:** O Admin percebe que os critérios de prioridade mudaram (ex: nova lei de saúde).
-*   **O que acontece:** Ele envia novos dados de exemplo e chama a função de "Treinar Modelo" no `/ia/treinar`.
-*   **Resultado:** A partir desse instante, a IA passa a seguir as novas regras de priorização para todos os novos pacientes.
+### Como a IA toma decisões:
+Nosso modelo de Machine Learning analisa critérios para definir uma nota de 0 a 100:
+1.  **Perfil Clínico e Social:** Idade e vulnerabilidade socioeconômica (renda vs gastos).
+2.  **Urgência Declarada:** O motivo do atendimento e a urgência apontada pelo paciente.
+3.  **Sugestão de Horário:** Ao invés de o paciente procurar um horário, a IA pode sugerir o profissional mais adequado e livre mais rapidamente.
 
 ---
 
-## 4. Como as coisas acontecem (Resumo por escrito)
+## 3. Fluxos Principais
 
-1.  **Ingresso:** O usuário faz seu **Cadastro** e **Login**. Ele recebe um token JWT (seu crachá).
-2.  **Preparação:** O perfil `paciente` preenche seus dados socioeconômicos.
-3.  **Ação de Fila:** O `paciente` solicita entrada na fila. 
-    - O sistema busca os dados do paciente.
-    - O sistema pergunta para a ML: "Qual a nota desse paciente?".
-    - A ML responde (ex: 85).
-    - O paciente é salvo na fila com o `score_ml = 0.85`.
-4.  **Espera Inteligente:** A lista de espera que os médicos veem está sempre ordenada do maior score para o menor.
-5.  **Atendimento:** O médico chama o paciente do topo. O status da fila muda para "Atendido" e o ciclo se fecha.
+### A. Agendamento Automático (O "Match" da Saúde)
+1.  **Solicitação:** O paciente pede um horário via modo automático.
+2.  **Sugestão:** A IA encontra o melhor especialista e horário disponível.
+3.  **Confirmação:** O sistema reserva o horário, mas ele só é oficializado quando o **paciente clica em "Confirmar"**. Isso evita faltas e horários presos.
+
+### B. Entrada na Fila (Self-Service)
+1.  **Check-in:** O paciente faz a entrada na fila pelo celular/totem.
+2.  **Score Instantâneo:** O backend calcula a prioridade segundos depois da entrada.
+3.  **Ordenação Dinâmica:** A lista dos profissionais se reordena automaticamente. Quem é mais urgente sempre "sobe" na lista.
 
 ---
-**Este fluxo garante que o SIGPS seja um sistema justo, rápido e sem necessidade de balcão de recepção humano.**
+
+## 4. Segurança e Sessão (O Login Seguro)
+
+O SIGPS usa tecnologia de ponta para proteger os dados:
+*   **Tokens de Acesso:** São como crachás digitais que expiram rapidamente para sua segurança.
+*   **Refresh Tokens:** Permitem que você continue logado no app sem precisar digitar a senha toda hora, mas podem ser cancelados remotamente pelo Admin se você perder o celular (**Logout Global**).
+
+---
+
+## 5. Regras Críticas
+
+*   **Privacidade:** Um paciente nunca consegue ver os dados de outro paciente.
+*   **Humanização:** Embora a IA sugira, o humano (gestor) sempre tem a palavra final para ajustes manuais na fila em casos excepcionais.
+*   **Transparência:** Todas as ações críticas (como mudar a prioridade de alguém) são gravadas em logs de auditoria.
+
+---
+**SIGPS — Tecnologia a serviço da vida.**

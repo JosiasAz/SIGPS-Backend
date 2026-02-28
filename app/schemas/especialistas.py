@@ -1,9 +1,8 @@
 from pydantic import BaseModel
-
+from typing import Optional
 
 class EspecialidadeCriar(BaseModel):
     nome: str
-
 
 class EspecialidadeResposta(BaseModel):
     id: int
@@ -12,30 +11,37 @@ class EspecialidadeResposta(BaseModel):
     class Config:
         from_attributes = True
 
-
 class EspecialistaCriar(BaseModel):
     nome: str
-    formacao: str | None = None
-    registro: str | None = None
-    bio: str | None = None
-    especialidade_id: int | None = None
-
+    formacao: Optional[str] = None
+    registro: Optional[str] = None
+    bio: Optional[str] = None
+    localizacao: Optional[str] = None
+    foto_url: Optional[str] = None
+    modalidade: str = "presencial"
+    especialidade_id: Optional[int] = None
 
 class EspecialistaAtualizar(BaseModel):
-    nome: str | None = None
-    formacao: str | None = None
-    registro: str | None = None
-    bio: str | None = None
-    especialidade_id: int | None = None
-
+    nome: Optional[str] = None
+    formacao: Optional[str] = None
+    registro: Optional[str] = None
+    bio: Optional[str] = None
+    localizacao: Optional[str] = None
+    foto_url: Optional[str] = None
+    modalidade: Optional[str] = None
+    especialidade_id: Optional[int] = None
 
 class EspecialistaResposta(BaseModel):
     id: int
+    usuario_id: Optional[int]
     nome: str
-    formacao: str | None
-    registro: str | None
-    bio: str | None
-    especialidade_id: int | None
+    formacao: Optional[str]
+    registro: Optional[str]
+    bio: Optional[str]
+    localizacao: Optional[str]
+    foto_url: Optional[str]
+    modalidade: str
+    especialidade_id: Optional[int]
 
     class Config:
         from_attributes = True
