@@ -1,6 +1,3 @@
-Perfeito. Abaixo está um **README acadêmico, didático e pronto para subir no GitHub**, pensado **para iniciantes**, para **trabalho em equipe** e para **defesa de TCC**.
-
-Você pode **copiar e colar exatamente como está** em `README.md`.
 
 ---
 
