@@ -1,20 +1,32 @@
-from pydantic_settings import BaseSettings
+from typing import Any, Dict, List, Optional, Union
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
 
+class Settings(BaseSettings):
+    PROJECT_NAME: str = "SIGPS - Backend"
+    API_V1_STR: str = "/api/v1"
+    
+    # Segurança
+    SECRET_KEY: str
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 dias
 
-class Configuracoes(BaseSettings):
-    APP_ENV: str = "dev"
-    DATABASE_URL: str
+    # Banco de Dados
+    DB_HOST: str
+    DB_PORT: str = "3306"
+    DB_USER: str
+    DB_PASSWORD: str
+    DB_NAME: str
 
-    JWT_SECRET: str
-    JWT_ALG: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 1 dia
+    @property
+    def SQLALCHEMY_DATABASE_URI(self) -> str:
+        return f"mysql+pymysql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
-    ML_MODEL_DIR: str = "./data/models"
-    ML_MODEL_NAME: str = "modelo.pkl"
+    # Carrega automaticamente do arquivo .env
+    model_config = SettingsConfigDict(
+        case_sensitive=True, 
+        env_file=".env",
+        extra="ignore" # Ignora variáveis extras no .env
+    )
 
-    class Config:
-        env_file = ".env"
-        extra = "ignore"
-
-
-settings = Configuracoes()
+settings = Settings()

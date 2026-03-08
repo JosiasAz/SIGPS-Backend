@@ -1,239 +1,80 @@
-# SIGPS -- Backend
+# SIGPS — Sistema Inteligente de Gestão e Priorização na Saúde (Backend)
 
-**Sistema Inteligente de Gestão e Priorização na Saúde (SIGPS)**
+Este repositório contém o **esqueleto inicial** (Boilerplate) do backend do projeto SIGPS, desenvolvido com FastAPI e SQLAlchemy. O projeto foi estruturado para ser modular, seguro e escalável.
 
-Este repositório contém o **backend da plataforma SIGPS**, responsável
-pela API REST, autenticação, gerenciamento de usuários, especialistas e
-agendamentos.
+---
 
-O SIGPS é uma plataforma desenvolvida como **Trabalho de Conclusão de
-Curso (TCC)** em Análise e Desenvolvimento de Sistemas.
+## 🚀 Como Rodar o Projeto
 
-O sistema conecta **pacientes e profissionais da área de saúde e
-bem‑estar**, permitindo agendamentos inteligentes, organização de
-agendas e priorização de atendimentos.
+### 1. Pré-requisitos
+*   **Python 3.12** ou superior instalado.
+*   **MySQL 8.0** configurado e rodando (ou via Docker).
 
-⚠️ O SIGPS **não é um sistema hospitalar** e **não realiza diagnósticos
-médicos**.
+### 2. Configuração do Ambiente
+1.  **Clone o repositório** (ou acesse a pasta do projeto).
+2.  **Crie um ambiente virtual:**
+    ```bash
+    python -m venv .venv
+    ```
+3.  **Ative o ambiente virtual:**
+    *   No Windows: `.venv\Scripts\activate`
+    *   No Linux/Mac: `source .venv/bin/activate`
+4.  **Instale as dependências:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-------------------------------------------------------------------------
+### 3. Variáveis de Ambiente
+O projeto utiliza um arquivo `.env` para gerenciar configurações sensíveis.
+1.  Copie o arquivo de exemplo:
+    ```bash
+    cp .env.example .env
+    ```
+2.  Abra o arquivo `.env` e preencha as informações de conexão com seu banco de dados MySQL e a `SECRET_KEY`.
 
-# 🎯 Missão
+### 4. Migrações do Banco de Dados
+O projeto utiliza o Alembic para gerenciar as tabelas. Após configurar o banco no `.env`:
+1.  **Gere a migração inicial** (quando houver modelos criados):
+    ```bash
+    alembic revision --autogenerate -m "Initial Migration"
+    ```
+2.  **Aplique as migrações:**
+    ```bash
+    alembic upgrade head
+    ```
 
-> Conectar pacientes aos profissionais certos, no momento certo, com
-> inteligência e eficiência.
-
-------------------------------------------------------------------------
-
-# 🧠 Arquitetura do Projeto
-
-O sistema SIGPS é dividido em **três repositórios principais**.
-
-    SIGPS
-    ├── sigps-frontend   → Interface web (Angular)
-    ├── sigps-backend    → API REST (FastAPI)
-    └── sigps-ml         → Machine Learning (priorização inteligente)
-
-### Responsabilidades
-
-**Frontend** - Interface do usuário - Comunicação com a API
-
-**Backend** - Autenticação e segurança - Gerenciamento de usuários -
-Gerenciamento de especialistas - Gerenciamento de agendamentos - Regras
-de negócio
-
-**Machine Learning** - Treinamento do modelo - Geração do modelo
-`.pkl` - Algoritmo de priorização
-
-------------------------------------------------------------------------
-
-# 👥 Perfis do Sistema
-
-O SIGPS possui **5 perfis de acesso**:
-
-  Perfil         Tipo
-  -------------- ---------
-  Paciente       Externo
-  Especialista   Externo
-  Admin          Interno
-  Gestor         Interno
-  Visualizador   Interno
-
-------------------------------------------------------------------------
-
-# 📅 Fluxo de Agendamento
-
-Existem dois modos de agendamento.
-
-## Agendamento Manual
-
-1.  Paciente busca especialista
-2.  Escolhe profissional
-3.  Seleciona horário disponível
-4.  Confirma agendamento
-
-------------------------------------------------------------------------
-
-## Agendamento Assistido por IA
-
-Quando o paciente não escolhe um especialista específico, o sistema
-pode:
-
--   sugerir o horário mais próximo
--   sugerir especialistas disponíveis
--   sugerir modalidade presencial ou online
-
-A decisão final **sempre é confirmada pelo paciente**.
-
-------------------------------------------------------------------------
-
-# 🤖 Machine Learning
-
-O módulo de Machine Learning está em um repositório separado:
-
-    sigps-ml
-
-Ele é responsável por:
-
--   treinamento do modelo
--   geração do arquivo de modelo
--   priorização inteligente de atendimentos
-
-O backend **não realiza treinamento**.
-
-Ele apenas **consome os resultados produzidos pelo módulo de ML**.
-
-------------------------------------------------------------------------
-
-# 🏗️ Estrutura do Backend
-
-    sigps-backend/
-    │
-    ├── app/
-    │   ├── main.py
-    │   ├── database.py
-    │
-    │   ├── core/
-    │   │   ├── config.py
-    │   │   └── security.py
-    │
-    │   ├── models/
-    │   │   ├── user.py
-    │   │   ├── specialist.py
-    │   │   └── appointment.py
-    │
-    │   ├── schemas/
-    │   │   ├── user_schema.py
-    │   │   └── appointment_schema.py
-    │
-    │   ├── routers/
-    │   │   ├── auth_router.py
-    │   │   ├── users_router.py
-    │   │   └── appointments_router.py
-    │
-    │   └── services/
-    │       ├── user_service.py
-    │       └── appointment_service.py
-    │
-    ├── docker-compose.yml
-    ├── Dockerfile
-    ├── requirements.txt
-    ├── .env.example
-    └── README.md
-
-------------------------------------------------------------------------
-
-# 🧩 Tecnologias Utilizadas
-
-  Tecnologia    Uso
-  ------------- -----------------
-  Python 3.12   Linguagem
-  FastAPI       API REST
-  SQLAlchemy    ORM
-  MySQL         Banco de dados
-  Docker        Containerização
-  JWT           Autenticação
-  Nginx         Proxy reverso
-
-------------------------------------------------------------------------
-
-# 🔐 Segurança
-
-O sistema implementa:
-
--   Autenticação **JWT**
--   Controle de acesso **RBAC**
--   Senhas com **bcrypt**
--   HTTPS
--   Variáveis sensíveis via `.env`
-
-------------------------------------------------------------------------
-
-# 🚀 Executando o Backend
-
-## Pré‑requisitos
-
--   Docker
--   Docker Compose
-
-------------------------------------------------------------------------
-
-## Clonar repositório
-
-``` bash
-git clone https://github.com/seu-usuario/sigps-backend.git
-cd sigps-backend
+### 5. Executando o Servidor
+Com o ambiente configurado, inicie o servidor de desenvolvimento:
+```bash
+uvicorn app.main:app --reload
 ```
+A API estará disponível em: `http://localhost:8000`
 
-------------------------------------------------------------------------
+---
 
-## Criar arquivo `.env`
+## 📖 Documentação da API
+Uma vez que o servidor estiver rodando, você pode acessar a documentação interativa:
+*   **Swagger UI:** [http://localhost:8000/docs](http://localhost:8000/docs)
+*   **Redoc:** [http://localhost:8000/redoc](http://localhost:8000/redoc)
 
-``` bash
-cp .env.example .env
+---
+
+## 🛠️ Guia de Desenvolvimento
+Para entender a lógica de negócio, a arquitetura em camadas e o passo a passo de implementação de cada funcionalidade:
+*   Consulte o arquivo: **`IMPLEMENTATION_GUIDE.md`**
+*   Para continuar o desenvolvimento com IA: **`PROMPT_PARA_ANTIGRAVITY.md`**
+
+---
+
+## 📁 Estrutura de Pastas
+```text
+app/
+├── api/             # Endpoints e Rotas
+├── core/            # Configurações globais e Segurança
+├── db/              # Sessão e Base do Banco
+├── models/          # Entidades SQLAlchemy
+├── repositories/    # Camada de Acesso a Dados
+├── schemas/         # Validações Pydantic
+├── services/        # Regras de Negócio
+└── utils/           # Validadores e Enums
 ```
-
-------------------------------------------------------------------------
-
-## Subir ambiente
-
-``` bash
-docker compose up --build
-```
-
-------------------------------------------------------------------------
-
-## Acessar API
-
-Swagger:
-
-    http://localhost:8000/docs
-
-Healthcheck:
-
-    http://localhost:8000/health
-
-------------------------------------------------------------------------
-
-# 🧑‍💻 Metodologia
-
-O projeto utiliza **Scrum** com sprints quinzenais gerenciadas via
-**Asana**.
-
-------------------------------------------------------------------------
-
-# 👥 Equipe
-
-  Membro            Papel
-  ----------------- --------------------------
-  Josias Azevedo    Scrum Master · Fullstack
-  Alan Nicolas      Product Owner · Backend
-  Matheus Akabane   QA
-  Kaio Pantoja      Frontend
-  Olliver Aquino    Frontend
-
-------------------------------------------------------------------------
-
-# 📄 Licença
-
-Projeto de uso **exclusivamente acadêmico**.

@@ -1,59 +1,30 @@
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional
+from datetime import datetime, timedelta
+from typing import Any, Union, Optional
 
-import jwt
-from fastapi import Depends, HTTPException
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import jwt
 from passlib.context import CryptContext
 
 from app.core.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-bearer = HTTPBearer(auto_error=False)
 
-# Perfis do SIGPS
-PERFIL_ADMIN = "admin"
-PERFIL_GESTOR = "gestor"
-PERFIL_PACIENTE = "paciente"
-PERFIL_VISUALIZADOR = "visualizador"
+ALGORITHM = settings.ALGORITHM
 
-TODOS_PERFIS = {PERFIL_ADMIN, PERFIL_GESTOR, PERFIL_PACIENTE, PERFIL_VISUALIZADOR}
-
-
-def gerar_hash_senha(senha_pura: str) -> str:
-    return pwd_context.hash(senha_pura)
-
-
-def verificar_senha(senha_pura: str, senha_hash: str) -> bool:
-    return pwd_context.verify(senha_pura, senha_hash)
-
-
-def criar_token_acesso(usuario_id: int, perfil: str) -> Dict[str, Any]:
-    now = datetime.now(timezone.utc)
-    exp = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-
-    payload = {
-        "usuarioId": usuario_id,
-        "perfil": perfil,
-        "iat": int(now.timestamp()),
-        "exp": int(exp.timestamp()),
-    }
-    token = jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALG)
-    return {"token": token, "expires_at": exp}
-
-
-def decodificar_token(token: str) -> Dict[str, Any]:
-    try:
-        return jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALG])
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expirado")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Token inválido")
-
-
-def obter_token_bearer(
-    creds: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
+def create_access_token(
+    subject: Union[str, Any], expires_delta: Optional[timedelta] = None
 ) -> str:
-    if not creds or not creds.credentials:
-        raise HTTPException(status_code=401, detail="Token ausente")
-    return creds.credentials
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        )
+    to_encode = {"exp": expire, "sub": str(subject)}
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
