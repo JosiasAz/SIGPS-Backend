@@ -91,7 +91,7 @@ A decisão final **sempre é confirmada pelo paciente**.
 
 O módulo de Machine Learning está em um repositório separado:
 
-    sigps-ml
+    SIGPS-Machine-Learning
 
 Ele é responsável por:
 
