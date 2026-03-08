@@ -1,224 +1,239 @@
+# SIGPS -- Backend
 
----
+**Sistema Inteligente de Gestão e Priorização na Saúde (SIGPS)**
 
-# SIGPS – Backend
+Este repositório contém o **backend da plataforma SIGPS**, responsável
+pela API REST, autenticação, gerenciamento de usuários, especialistas e
+agendamentos.
 
-**Sistema Inteligente de Gerenciamento de Prioridades em Saúde (SIGPS)**
+O SIGPS é uma plataforma desenvolvida como **Trabalho de Conclusão de
+Curso (TCC)** em Análise e Desenvolvimento de Sistemas.
 
-Este repositório contém o **back-end do projeto SIGPS**, desenvolvido como **projeto acadêmico**, com foco em organização, clareza e aprendizado em equipe.
+O sistema conecta **pacientes e profissionais da área de saúde e
+bem‑estar**, permitindo agendamentos inteligentes, organização de
+agendas e priorização de atendimentos.
 
-O sistema tem como objetivo **gerenciar usuários da área da saúde e aplicar priorização inteligente de atendimentos**, utilizando **Machine Learning** de forma simples e explicável.
+⚠️ O SIGPS **não é um sistema hospitalar** e **não realiza diagnósticos
+médicos**.
 
----
+------------------------------------------------------------------------
 
-## 🎯 Objetivo do Projeto
+# 🎯 Missão
 
-O SIGPS busca resolver um problema comum em sistemas de saúde e bem-estar:
-**a falta de priorização inteligente e organizada no atendimento de pacientes**.
+> Conectar pacientes aos profissionais certos, no momento certo, com
+> inteligência e eficiência.
 
-Este backend é responsável por:
+------------------------------------------------------------------------
 
-* Gerenciar usuários e perfis (RBAC)
-* Autenticação via JWT
-* Disponibilizar API REST documentada (Swagger)
-* Integrar um **módulo de Machine Learning** para apoiar a priorização
+# 🧠 Arquitetura do Projeto
 
----
+O sistema SIGPS é dividido em **três repositórios principais**.
 
-## 🧠 Uso de Machine Learning (Abordagem Acadêmica)
+    SIGPS
+    ├── sigps-frontend   → Interface web (Angular)
+    ├── sigps-backend    → API REST (FastAPI)
+    └── sigps-ml         → Machine Learning (priorização inteligente)
 
-O projeto utiliza **Machine Learning como apoio à decisão**, não como substituição do profissional.
+### Responsabilidades
 
-### Importante:
+**Frontend** - Interface do usuário - Comunicação com a API
 
-* ❌ A API **não treina modelos automaticamente**
-* ✅ O treinamento é feito separadamente
-* ✅ A API apenas **carrega o modelo treinado** e executa inferências
+**Backend** - Autenticação e segurança - Gerenciamento de usuários -
+Gerenciamento de especialistas - Gerenciamento de agendamentos - Regras
+de negócio
 
-Isso garante:
+**Machine Learning** - Treinamento do modelo - Geração do modelo
+`.pkl` - Algoritmo de priorização
 
-* Simplicidade
-* Performance
-* Clareza para fins acadêmicos
+------------------------------------------------------------------------
 
----
+# 👥 Perfis do Sistema
 
-## 🏗️ Arquitetura do Backend
+O SIGPS possui **5 perfis de acesso**:
 
-```
-sigps-backend/
-├── app/
-│   ├── main.py              # Inicialização da API
-│   ├── database.py          # Conexão com MySQL
-│   ├── core/                # Configurações e segurança
-│   ├── models/              # Modelos do banco (SQLAlchemy)
-│   ├── schemas/             # Schemas Pydantic
-│   ├── routers/             # Endpoints da API
-│   ├── services/            # Regras de negócio
-│   └── ml/                  # Módulo de Machine Learning
-├── docker-compose.yml
-├── Dockerfile
-├── requirements.txt
-├── .env.example
-└── README.md
-```
+  Perfil         Tipo
+  -------------- ---------
+  Paciente       Externo
+  Especialista   Externo
+  Admin          Interno
+  Gestor         Interno
+  Visualizador   Interno
 
----
+------------------------------------------------------------------------
 
-## 🧩 Tecnologias Utilizadas
+# 📅 Fluxo de Agendamento
 
-* **Python 3.12**
-* **FastAPI**
-* **SQLAlchemy**
-* **MySQL**
-* **Docker & Docker Compose**
-* **JWT (Autenticação)**
-* **Scikit-learn (Machine Learning)**
+Existem dois modos de agendamento.
 
----
+## Agendamento Manual
 
-## 🔐 Perfis de Usuário (RBAC)
+1.  Paciente busca especialista
+2.  Escolhe profissional
+3.  Seleciona horário disponível
+4.  Confirma agendamento
 
-O sistema trabalha com controle de acesso baseado em perfil:
+------------------------------------------------------------------------
 
-* `admin` – controle total
-* `gestor` – gerenciamento
-* `recepcao` – operações de fila/priorização
-* `paciente` – acesso limitado
+## Agendamento Assistido por IA
 
-Esse controle é feito via **JWT + dependências do FastAPI**.
+Quando o paciente não escolhe um especialista específico, o sistema
+pode:
 
----
+-   sugerir o horário mais próximo
+-   sugerir especialistas disponíveis
+-   sugerir modalidade presencial ou online
 
-## 🚀 Como Rodar o Projeto
+A decisão final **sempre é confirmada pelo paciente**.
 
-### 1️⃣ Pré-requisitos
+------------------------------------------------------------------------
 
-* Docker
-* Docker Compose
+# 🤖 Machine Learning
 
----
+O módulo de Machine Learning está em um repositório separado:
 
-### 2️⃣ Clonar o repositório
+    sigps-ml
 
-```bash
+Ele é responsável por:
+
+-   treinamento do modelo
+-   geração do arquivo de modelo
+-   priorização inteligente de atendimentos
+
+O backend **não realiza treinamento**.
+
+Ele apenas **consome os resultados produzidos pelo módulo de ML**.
+
+------------------------------------------------------------------------
+
+# 🏗️ Estrutura do Backend
+
+    sigps-backend/
+    │
+    ├── app/
+    │   ├── main.py
+    │   ├── database.py
+    │
+    │   ├── core/
+    │   │   ├── config.py
+    │   │   └── security.py
+    │
+    │   ├── models/
+    │   │   ├── user.py
+    │   │   ├── specialist.py
+    │   │   └── appointment.py
+    │
+    │   ├── schemas/
+    │   │   ├── user_schema.py
+    │   │   └── appointment_schema.py
+    │
+    │   ├── routers/
+    │   │   ├── auth_router.py
+    │   │   ├── users_router.py
+    │   │   └── appointments_router.py
+    │
+    │   └── services/
+    │       ├── user_service.py
+    │       └── appointment_service.py
+    │
+    ├── docker-compose.yml
+    ├── Dockerfile
+    ├── requirements.txt
+    ├── .env.example
+    └── README.md
+
+------------------------------------------------------------------------
+
+# 🧩 Tecnologias Utilizadas
+
+  Tecnologia    Uso
+  ------------- -----------------
+  Python 3.12   Linguagem
+  FastAPI       API REST
+  SQLAlchemy    ORM
+  MySQL         Banco de dados
+  Docker        Containerização
+  JWT           Autenticação
+  Nginx         Proxy reverso
+
+------------------------------------------------------------------------
+
+# 🔐 Segurança
+
+O sistema implementa:
+
+-   Autenticação **JWT**
+-   Controle de acesso **RBAC**
+-   Senhas com **bcrypt**
+-   HTTPS
+-   Variáveis sensíveis via `.env`
+
+------------------------------------------------------------------------
+
+# 🚀 Executando o Backend
+
+## Pré‑requisitos
+
+-   Docker
+-   Docker Compose
+
+------------------------------------------------------------------------
+
+## Clonar repositório
+
+``` bash
 git clone https://github.com/seu-usuario/sigps-backend.git
 cd sigps-backend
 ```
 
----
+------------------------------------------------------------------------
 
-### 3️⃣ Criar o arquivo `.env`
+## Criar arquivo `.env`
 
-```bash
+``` bash
 cp .env.example .env
 ```
 
-> Ajuste apenas se necessário (em geral, não precisa).
+------------------------------------------------------------------------
 
----
+## Subir ambiente
 
-### 4️⃣ Subir o ambiente
-
-```bash
+``` bash
 docker compose up --build
 ```
 
----
+------------------------------------------------------------------------
 
-### 5️⃣ Acessar a API
+## Acessar API
 
-* Swagger (documentação):
-  👉 [http://localhost:8000/docs](http://localhost:8000/docs)
-* Healthcheck:
-  👉 [http://localhost:8000/health](http://localhost:8000/health)
+Swagger:
 
----
+    http://localhost:8000/docs
 
-## 🤖 Machine Learning – Como Usar
+Healthcheck:
 
-### Treinar o modelo (manual)
+    http://localhost:8000/health
 
-```bash
-docker exec -it sigps_api python -m app.ml.train
-```
+------------------------------------------------------------------------
 
-Isso irá gerar o arquivo:
+# 🧑‍💻 Metodologia
 
-```
-app/ml/model.pkl
-```
+O projeto utiliza **Scrum** com sprints quinzenais gerenciadas via
+**Asana**.
 
-⚠️ **Esse arquivo não é versionado no Git** (boa prática).
+------------------------------------------------------------------------
 
----
+# 👥 Equipe
 
-### Testar inferência via API
+  Membro            Papel
+  ----------------- --------------------------
+  Josias Azevedo    Scrum Master · Fullstack
+  Alan Nicolas      Product Owner · Backend
+  Matheus Akabane   QA
+  Kaio Pantoja      Frontend
+  Olliver Aquino    Frontend
 
-Endpoint:
+------------------------------------------------------------------------
 
-```
-POST /ml/predict
-```
-
-Exemplo de payload:
-
-```json
-{
-  "features": [1, 0, 0]
-}
-```
-
-Resposta esperada:
-
-```json
-{
-  "score": 2,
-  "prioridade": "alta"
-}
-```
-
----
-
-## 📌 Organização para a Equipe
-
-* **Routers**: apenas recebem requisições e retornam respostas
-* **Services**: contêm regras de negócio
-* **ML**: isolado, simples e explicável
-* **Database**: centralizado
-* **Configurações**: todas via `.env`
-
-Essa separação facilita:
-
-* Aprendizado
-* Manutenção
-* Divisão de tarefas
-
----
-
-## 📚 Contexto Acadêmico
-
-Este projeto:
-
-* Utiliza **dados simulados** para ML
-
-* Prioriza **clareza didática e organização**
-
-
----
-
-## 👥 Equipe
-
-Projeto desenvolvido por alunos de **Análise e Desenvolvimento de Sistemas**, com foco em aprendizado prático, arquitetura limpa e boas práticas de backend.
-
-Autores: 
-- Josias Azevedo da Silva
-- Alan Nicolas
-- Matheus Akabane
-- Kaio Pantoja
----
-
-## 📄 Licença
+# 📄 Licença
 
 Projeto de uso **exclusivamente acadêmico**.
-
