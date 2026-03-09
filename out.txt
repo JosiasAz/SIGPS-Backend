@@ -1,0 +1,91 @@
+.\.venv\Scripts\python.exe : Traceback (most recent call last):
+No linha:1 caractere:1
++ .\.venv\Scripts\python.exe -m app.db.init_db > init_db.log 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [],  
+   RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\.venv\Lib\site-packages\sqlalchemy\or
+m\clsregistry.py", line 516, in _resolve_name
+    rval = d[token]
+           ~^^^^^^^
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\.venv\Lib\site-packages\sqlalchemy\ut
+il\_collections.py", line 345, in __missing__
+    self[key] = val = self.creator(key)
+                      ^^^^^^^^^^^^^^^^^
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\.venv\Lib\site-packages\sqlalchemy\or
+m\clsregistry.py", line 484, in _access_cls
+    return self.fallback[key]
+           ~~~~~~~~~~~~~^^^^^
+KeyError: 'Appointment'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\app\db\init_db.py", line 23, in 
+<module>
+    init_db(db)
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\app\db\init_db.py", line 11, in 
+init_db
+    user = user_repository.get_by_email(db, email=admin_email)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\app\repositories\user_repository.py", line 
+8, in get_by_email
+    return db.query(User).filter(User.email == email).first()
+           ^^^^^^^^^^^^^^
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\.venv\Lib\site-packages\sqlalchemy\or
+m\session.py", line 2952, in query
+    return self._query_cls(entities, self, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\.venv\Lib\site-packages\sqlalchemy\or
+m\query.py", line 275, in __init__
+    self._set_entities(entities)
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\.venv\Lib\site-packages\sqlalchemy\or
+m\query.py", line 288, in _set_entities
+    coercions.expect(
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\.venv\Lib\site-packages\sqlalchemy\sq
+l\coercions.py", line 389, in expect
+    insp._post_inspect
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\.venv\Lib\site-packages\sqlalchemy\ut
+il\langhelpers.py", line 1253, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\.venv\Lib\site-packages\sqlalchemy\or
+m\mapper.py", line 2711, in _post_inspect
+    self._check_configure()
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\.venv\Lib\site-packages\sqlalchemy\or
+m\mapper.py", line 2388, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\.venv\Lib\site-packages\sqlalchemy\or
+m\mapper.py", line 4204, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\.venv\Lib\site-packages\sqlalchemy\or
+m\mapper.py", line 4245, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\.venv\Lib\site-packages\sqlalchemy\or
+m\mapper.py", line 2405, in _post_configure_properties
+    prop.init()
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\.venv\Lib\site-packages\sqlalchemy\or
+m\interfaces.py", line 584, in init
+    self.do_init()
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\.venv\Lib\site-packages\sqlalchemy\or
+m\relationships.py", line 1642, in do_init
+    self._setup_entity()
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\.venv\Lib\site-packages\sqlalchemy\or
+m\relationships.py", line 1854, in _setup_entity
+    self._clsregistry_resolve_name(argument)(),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\.venv\Lib\site-packages\sqlalchemy\or
+m\clsregistry.py", line 520, in _resolve_name
+    self._raise_for_name(name, err)
+  File "C:\Users\mathe\OneDrive\Documents\SIGPS-Backend\.venv\Lib\site-packages\sqlalchemy\or
+m\clsregistry.py", line 501, in _raise_for_name
+    raise exc.InvalidRequestError(
+sqlalchemy.exc.InvalidRequestError: When initializing mapper Mapper[Patient(patients)], 
+expression 'Appointment' failed to locate a name ('Appointment'). If this is a class name, 
+consider adding this relationship() to the <class 'app.models.patient.Patient'> class after 
+both dependent classes have been defined.

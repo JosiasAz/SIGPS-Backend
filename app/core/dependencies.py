@@ -10,8 +10,8 @@ from app.core import security
 from app.core.config import settings
 from app.db.session import SessionLocal
 from app.models.user import User
-from app.repositories.user_repository import UserRepository
-from app.schemas.auth import TokenPayload
+from app.repositories.user_repository import user_repository
+from app.schemas.token import TokenPayload
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/auth/login"
@@ -37,7 +37,7 @@ def get_current_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
         )
-    user = UserRepository(db).get_by_id(token_data.sub)
+    user = user_repository.get(db, id=int(token_data.sub))
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     if not user.is_active:
